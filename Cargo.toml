@@ -4,4 +4,4 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-blue_engine = "0.6.2"
+bevy = "0.15.1"

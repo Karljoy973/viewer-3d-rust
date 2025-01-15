@@ -1,24 +1,49 @@
-use blue_engine::{
-    header::{ Engine, ObjectSettings },
-    primitive_shapes::triangle, WindowDescriptor, primitive_shapes::three_dimensions::cube, 
-};
+use bevy::prelude::*;
+
+#[derive(Component)]
+struct Person;
+#[derive(Component)]
+struct Name(String);
 
 fn main() {
-    // initialize the engine
-    let mut engine = Engine::new_config(WindowDescriptor {
-        width: 1920,
-        height: 1080,
-        title: "My Awesome Render",
-        ..Default::default() 
-    }).expect("engine couldn't be initialized");
+    
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_plugins(HelloPlugin)
+        .run();
 
-    // create a triangle
-    // triangle("my triangle", ObjectSettings::default(), &mut engine.renderer, &mut engine.objects);
+}
+fn add_people(mut commands: Commands) {
+    commands.spawn((Person, Name("Elaina Proctor".to_string())));
+    commands.spawn((Person, Name("Renzo Hume".to_string())));
+    commands.spawn((Person, Name("Zayna Nieves".to_string())));
+}
 
-    cube("A cool looking cube", &mut engine.renderer, &mut engine.objects);
+fn hello_world() {
+    println!("hello world!");
+}
+fn greet_people(query: Query<&Name, With<Person>>) {
+    for name in &query {
+        println!("hello {}!", name.0);
+    }
+}
 
-    // run the engine
-    engine
-        .update_loop(move |_, _, _, _, _, _| {})
-        .expect("Error during update loop");
+fn update_people(mut query: Query<&mut Name, With<Person>>) {
+    for mut name in &mut query {
+        if name.0 == "Elaina Proctor" {
+            name.0 = "Elaina Hume".to_string();
+            break; // We don't need to change any other names.
+        }
+    }
+}
+
+pub struct HelloPlugin;
+
+impl Plugin for HelloPlugin {
+    fn build(&self, app: &mut App) {
+        app
+        .add_systems(Startup, add_people)
+        .add_systems(Update, (hello_world, (update_people,greet_people))
+        .chain());
+    }
 }
