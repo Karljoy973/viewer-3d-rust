@@ -1,16 +1,11 @@
-use bevy::{prelude::*, ui::UiPlugin};
-use ui::*;
-mod hello_world_plugin;
-
+use bevy::prelude::*;
+mod people_plugin;
 
 fn main() {
     
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(hello_world_plugin::HelloPlugin)
-        .add_plugins(UiPlugin)
+        .add_plugins(people_plugin::HelloPlugin)
         .run();
 
 }
-
-
