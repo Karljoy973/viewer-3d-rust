@@ -146,5 +146,5 @@ pub fn camera_keyboard_translation_system(
 pub enum viewerStates {
     Viewer, //the input system affects the camera 
     Compose, //the input system affects the selected mesh 
-    
+    Documentation, // no input system works and there is a ui apearing 
 }
