@@ -42,6 +42,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_systems(Startup, setup)
         .add_systems(Update, camera_keyboard_translation_system)
+        .add_systems(Update, camera_mouse_keyboard_rotation_system)
         .run();
     // .add_systems(Update, camera_rotation_system)
     // .add_systems(Update, camera_mouse_translation_system)
@@ -141,6 +142,28 @@ pub fn camera_keyboard_translation_system(
         camera.translation.y += camera_settings.y_translation_speed;
         println!("Arrow right + Shift key pressed");
     }
+}
+
+pub fn camera_mouse_keyboard_rotation_system(
+    key: Res<ButtonInput<KeyCode>>,
+    mouse_mouvement: Res<AccumulatedMouseMotion>, 
+    mouse_state: Res<ButtonInput<MouseButton>>,
+    mut mesh: Single<&mut Transform, With<Mesh3d>>,
+) {
+    if key.just_pressed(KeyCode::KeyC) {
+        println!("C key pressed");
+        //select cube state 
+        if /*key.pressed(KeyCode::KeyX) &&*/ mouse_state.pressed(MouseButton::Left) {
+            mesh.translation.x = mouse_mouvement.delta.project_onto(Vec2::new(mesh.translation.x,mesh.translation.y)).x;
+        }
+        else if key.pressed(KeyCode::KeyY) {
+            
+        }
+        else if key.pressed(KeyCode::KeyZ) {
+            
+        }
+    }
+
 }
 
 pub enum viewerStates {
