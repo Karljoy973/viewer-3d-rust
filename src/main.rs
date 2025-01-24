@@ -1,7 +1,5 @@
-use std::thread::current;
 
-use bevy::{input::{keyboard::{Key, KeyboardInput}, mouse::{self, AccumulatedMouseMotion, AccumulatedMouseScroll}}, prelude::*};
-use bevy::input::keyboard;
+use bevy::{input::mouse::{ AccumulatedMouseMotion}, prelude::*};
 
  use std::{f32::consts::FRAC_PI_2, ops::Range};
 #[derive(Debug, Resource)]
@@ -38,14 +36,17 @@ impl Default for CameraSettings {
 
 fn main() {
    App::new()
-        .init_resource::<CameraSettings>()
         .add_plugins(DefaultPlugins)
+        .init_state::<ViewerState>()
+        .init_state::<TransformState>()
+        .init_resource::<CameraSettings>()
         .add_systems(Startup, setup)
-        .add_systems(Update, camera_keyboard_translation_system)
-        .add_systems(Update, camera_mouse_keyboard_rotation_system)
+        .add_systems(Update, camera_keyboard_translation_system.run_if(in_state(ViewerState::Idle)))
+        .add_systems(Update, camera_mouse_keyboard_rotation_system.run_if(in_state(ViewerState::Idle)))
+        .add_systems(Update, to_documentation_state)
+        .add_systems(Update, to_idle_state)
+        .add_systems(Update, to_transform_state)
         .run();
-    // .add_systems(Update, camera_rotation_system)
-    // .add_systems(Update, camera_mouse_translation_system)
 }
 
 pub fn setup(
@@ -75,41 +76,6 @@ pub fn setup(
         Transform::from_xyz(5.0, 5.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 }
-
-
-// fn camera_rotation_system(
-//     mouse_buttons: Res<ButtonInput<MouseButton>>,
-//     mouse_motion: Res<AccumulatedMouseMotion>,
-//     key_pressed: Res<ButtonInput<KeyCode>>,
-//     mut camera: Single<&mut Transform, With<Camera>>,
-//     camera_settings: Res<CameraSettings>,
-//     time: Res<Time>,
-// ) {
-//     let delta = mouse_motion.delta;
-//     let mut delta_roll = 0.0;
-
-//     let delta_pitch = delta.y * camera_settings.pitch_speed;
-//     let delta_yaw = delta.x * camera_settings.yaw_speed;
-
-//     // Conversely, we DO need to factor in delta time for mouse button inputs.
-//     delta_roll *= camera_settings.roll_speed * time.delta_secs();
-
-//     // Obtain the existing pitch, yaw, and roll values from the transform.
-//     let (yaw, pitch, roll) = camera.rotation.to_euler(EulerRot::YXZ);
-
-//     // Establish the new yaw and pitch, preventing the pitch value from exceeding our limits.
-//     let pitch = (pitch + delta_pitch).clamp(
-//         camera_settings.pitch_range.start,
-//         camera_settings.pitch_range.end,
-//     );
-//     let roll = roll + delta_roll;
-//     let yaw = yaw + delta_yaw;
-//     camera.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
-
-//     let target = Vec3::ZERO;
-//     // camera.rotation = target - camera.forward() * camera_settings.orbit_distance;
-
-// }
 
 pub fn camera_keyboard_translation_system(
     key: Res<ButtonInput<KeyCode>>,
@@ -166,8 +132,51 @@ pub fn camera_mouse_keyboard_rotation_system(
 
 }
 
-pub enum viewerStates {
-    Viewer, //the input system affects the camera 
-    Compose, //the input system affects the selected mesh 
-    Documentation, // no input system works and there is a ui apearing 
+#[derive(Eq, PartialEq, States, Debug, Clone, Copy, Hash, Default)]
+pub enum ViewerState {
+    #[default]
+    Idle, //the input system affects the camera 
+    Transform, //the input system affects the selected mesh 
+    Documentation, // no input system works and there is a ui apearing
+}
+
+#[derive(Eq, PartialEq, States, Debug, Clone, Copy, Hash, Default)]
+pub enum TransformState {
+    #[default]
+    Neutral, 
+    Translation, 
+    Rotation, 
+    Scale
+}
+
+
+
+
+pub fn to_idle_state(
+    key: Res<ButtonInput<KeyCode>>,
+    current_viewer_state: Res<State<ViewerState>>, 
+    mut next_viewer_state: ResMut<NextState<ViewerState>>
+){
+    if !current_viewer_state.get().eq(&ViewerState::Idle) && key.pressed (KeyCode::ShiftLeft) && key.pressed (KeyCode::KeyI){
+        next_viewer_state.set(ViewerState::Idle);
+        println!("Current state : Idle State");
+    }
+}
+pub fn to_transform_state(
+    key: Res<ButtonInput<KeyCode>>, 
+    current_viewer_state: Res<State<ViewerState>>, 
+    mut next_viewer_state: ResMut<NextState<ViewerState>>){
+    if !current_viewer_state.get().eq(&ViewerState::Transform) && key.pressed (KeyCode::ShiftLeft) && key.pressed (KeyCode::KeyT){
+        next_viewer_state.set(ViewerState::Transform);
+        println!("Current state : Transform State");
+    }
+}
+pub fn to_documentation_state(
+    key: Res<ButtonInput<KeyCode>>, 
+    current_viewer_state: Res<State<ViewerState>>, 
+    mut next_viewer_state: ResMut<NextState<ViewerState>>){
+if !current_viewer_state.get().eq(&ViewerState::Documentation) && key.pressed (KeyCode::ShiftLeft) && key.pressed (KeyCode::KeyD) {
+        next_viewer_state.set(ViewerState::Documentation);
+        println!("Current state : Documentation State");
+    }    
 }
