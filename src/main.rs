@@ -41,7 +41,7 @@ fn main() {
         .init_state::<TransformState>()
         .init_resource::<CameraSettings>()
         .add_systems(Startup, setup)
-        .add_systems(Update, camera_keyboard_translation_system.run_if(in_state(ViewerState::Idle)))
+        .add_systems(Update, camera_keyboard_translation_system.run_if(in_state(ViewerState::Idle)))//regarder comment implémenter un raycast
         .add_systems(Update, camera_mouse_keyboard_rotation_system.run_if(in_state(ViewerState::Idle)))
         .add_systems(Update, to_documentation_state)
         .add_systems(Update, to_idle_state)
@@ -180,3 +180,7 @@ if !current_viewer_state.get().eq(&ViewerState::Documentation) && key.pressed (K
         println!("Current state : Documentation State");
     }    
 }
+
+
+//en transform mode, j'aurais aimé pouvoir montrer le transform tool (au début avec seulement le scale)
+//le transform tool serait par rapport au repère local et permetterait d'appliquer une transformation suivant un axe ou suivant un plan 
