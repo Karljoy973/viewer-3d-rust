@@ -1,5 +1,5 @@
 
-use bevy::{input::mouse::{ AccumulatedMouseMotion}, prelude::*};
+use bevy::{input::{keyboard::{Key, KeyboardInput}, mouse::AccumulatedMouseMotion}, prelude::*, utils::hashbrown::Equivalent};
 
  use std::{f32::consts::FRAC_PI_2, ops::Range};
 #[derive(Debug, Resource)]
@@ -43,9 +43,13 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(Update, camera_keyboard_translation_system.run_if(in_state(ViewerState::Idle)))//regarder comment implémenter un raycast
         .add_systems(Update, camera_mouse_keyboard_rotation_system.run_if(in_state(ViewerState::Idle)))
-        .add_systems(Update, to_documentation_state)
-        .add_systems(Update, to_idle_state)
+        // .add_systems(Update, to_documentation_state)
         .add_systems(Update, to_transform_state)
+        .add_systems(Update, to_idle_state)
+        .add_systems(Update, to_neutral_transform_state)
+        .add_systems(Update, to_translation_transform_state)
+        .add_systems(Update, to_rotation_transform_state)
+        .add_systems(Update, to_scale_transform_state)
         .run();
 }
 
@@ -111,6 +115,7 @@ pub fn camera_keyboard_translation_system(
 }
 
 pub fn camera_mouse_keyboard_rotation_system(
+
     key: Res<ButtonInput<KeyCode>>,
     mouse_mouvement: Res<AccumulatedMouseMotion>, 
     mouse_state: Res<ButtonInput<MouseButton>>,
@@ -125,7 +130,7 @@ pub fn camera_mouse_keyboard_rotation_system(
         else if key.pressed(KeyCode::KeyY) {
             
         }
-        else if key.pressed(KeyCode::KeyZ) {
+        else if key.pressed(KeyCode::KeyZ) { // I could use a switch statement (or the ruste equivalent)
             
         }
     }
@@ -149,36 +154,125 @@ pub enum TransformState {
     Scale
 }
 
+impl std::fmt::Display for TransformState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TransformState::Neutral => write!(f, "Neutral"), 
+            TransformState::Translation => write!(f, "Translation"),
+            TransformState::Rotation => write!(f, "Rotation"),
+            TransformState::Scale => write!(f, "Scale"),
+        }
+    }
+}
+
+impl std::fmt::Display for ViewerState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ViewerState::Idle => write!(f, "Idle"), 
+            ViewerState::Transform => write!(f, "Transform"),
+            ViewerState::Documentation => write!(f, "Documentation"),
+        }
+    }
+}
+
+
+pub fn to_neutral_transform_state(
+    current_transform_state: Res<State<TransformState>>, 
+    mut next_transform_state: ResMut<NextState<TransformState>>, 
+    mut keyboard_events: EventReader<KeyboardInput>
+){
+    for keyboard_event in keyboard_events.read()
+    {
+        if !current_transform_state.get().eq(&TransformState::Neutral) && keyboard_event.key_code.eq(&KeyCode::Escape) {
+            println!("Current state : Neutural");
+            next_transform_state.set(TransformState::Neutral);
+    }
+}
+}
+pub fn to_translation_transform_state(
+    current_transform_state: Res<State<TransformState>>, 
+    mut next_transform_state: ResMut<NextState<TransformState>>, 
+    mut keyboard_events: EventReader<KeyboardInput>
+){
+    for keyboard_event in keyboard_events.read(){
+        if !current_transform_state.get().eq(&TransformState::Neutral) && keyboard_event.key_code.eq(&KeyCode::KeyT) {
+            println!("Current state : Translation");
+            next_transform_state.set(TransformState::Translation);
+        }
+    }
+}
+pub fn to_rotation_transform_state(
+    current_transform_state: Res<State<TransformState>>, 
+    mut next_transform_state: ResMut<NextState<TransformState>>, 
+    mut keyboard_events: EventReader<KeyboardInput>
+){
+    for keyboard_event in keyboard_events.read(){
+        if !current_transform_state.get().eq(&TransformState::Neutral) && keyboard_event.key_code.eq(&KeyCode::KeyR) {
+        println!("Current state : {}", current_transform_state.get());
+        next_transform_state.set(TransformState::Rotation);
+        }
+    }
+}
+pub fn to_scale_transform_state(
+    current_transform_state: Res<State<TransformState>>, 
+    mut next_transform_state: ResMut<NextState<TransformState>>, 
+    mut keyboard_events: EventReader<KeyboardInput>
+){
+    for keyboard_event in keyboard_events.read(){
+        if !current_transform_state.get().eq(&TransformState::Neutral) && keyboard_event.key_code.eq(&KeyCode::KeyS)  {
+            println!("Current state : {}", current_transform_state.get());
+            next_transform_state.set(TransformState::Neutral);
+        }
+    }
+}
 
 
 
 pub fn to_idle_state(
-    key: Res<ButtonInput<KeyCode>>,
+    mut keyboard_events: EventReader<KeyboardInput>,
     current_viewer_state: Res<State<ViewerState>>, 
     mut next_viewer_state: ResMut<NextState<ViewerState>>
 ){
-    if !current_viewer_state.get().eq(&ViewerState::Idle) && key.pressed (KeyCode::ShiftLeft) && key.pressed (KeyCode::KeyI){
-        next_viewer_state.set(ViewerState::Idle);
-        println!("Current state : Idle State");
+    for keyboard_event in keyboard_events.read(){
+        if current_viewer_state.get().eq(&ViewerState::Idle) && keyboard_event.key_code.equivalent(&KeyCode::Escape) {
+            println!("Already in {} state", current_viewer_state.get());
+        }
+        else if !current_viewer_state.get().eq(&ViewerState::Idle) && keyboard_event.key_code.equivalent(&KeyCode::Escape) {
+            println!("Current state : {}", current_viewer_state.get() );
+            next_viewer_state.set(ViewerState::Idle);
     }
 }
+}
 pub fn to_transform_state(
-    key: Res<ButtonInput<KeyCode>>, 
+    mut keyboard_events: EventReader<KeyboardInput>, 
     current_viewer_state: Res<State<ViewerState>>, 
     mut next_viewer_state: ResMut<NextState<ViewerState>>){
-    if !current_viewer_state.get().eq(&ViewerState::Transform) && key.pressed (KeyCode::ShiftLeft) && key.pressed (KeyCode::KeyT){
-        next_viewer_state.set(ViewerState::Transform);
-        println!("Current state : Transform State");
+
+        for keyboard_event in keyboard_events.read(){
+            
+            if current_viewer_state.get().eq(&ViewerState::Transform) && keyboard_event.key_code.equivalent(&KeyCode::KeyT) {
+                println!("Already in {:?} state", current_viewer_state.get());
+            }
+            else if !current_viewer_state.get().eq(&ViewerState::Transform) && 
+                // keyboard_event.key_code.equivalent(&KeyCode::ShiftLeft) && 
+                keyboard_event.key_code.equivalent(&KeyCode::KeyT){
+                    println!("Current state : {}", current_viewer_state.get());
+                    next_viewer_state.set(ViewerState::Transform);
+        }
     }
 }
 pub fn to_documentation_state(
-    key: Res<ButtonInput<KeyCode>>, 
+    mut keyboard_events: EventReader<KeyboardInput>,
     current_viewer_state: Res<State<ViewerState>>, 
     mut next_viewer_state: ResMut<NextState<ViewerState>>){
-if !current_viewer_state.get().eq(&ViewerState::Documentation) && key.pressed (KeyCode::ShiftLeft) && key.pressed (KeyCode::KeyD) {
-        next_viewer_state.set(ViewerState::Documentation);
-        println!("Current state : Documentation State");
-    }    
+        for keyboard_event in keyboard_events.read(){
+            if !current_viewer_state.get().eq(&ViewerState::Documentation) && 
+                keyboard_event.key_code.eq(&KeyCode::ShiftLeft) && 
+                keyboard_event.key_code.eq(&KeyCode::KeyD) {
+                    println!("Current state : {:?}", current_viewer_state.get());
+                    next_viewer_state.set(ViewerState::Documentation);
+        }   
+    }
 }
 
 
