@@ -1,4 +1,4 @@
-use bevy::{input::keyboard::KeyboardInput, prelude::*};
+use bevy::{input::keyboard::KeyboardInput, prelude::*, utils::hashbrown::Equivalent};
 
 
 #[derive(States)]

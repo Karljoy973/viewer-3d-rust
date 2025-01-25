@@ -1,6 +1,5 @@
 
-use bevy::{input::{keyboard::{Key, KeyboardInput}, mouse::AccumulatedMouseMotion}, prelude::*, utils::hashbrown::Equivalent};
-use std::{f32::consts::FRAC_PI_2, ops::Range};
+use bevy::prelude::*;
 
 pub mod camera_management;
 pub mod ui_management;
@@ -15,49 +14,18 @@ use viewer_states::{
     to_translation_transform_state,
     to_rotation_transform_state,
     to_scale_transform_state,
-    }
+    };
 use ui_management::{
     spawn_doc_ui, 
     despawn_doc_ui
-}
+};
 
 use camera_management:: {
     camera_keyboard_translation_system,
-    camera_mouse_keyboard_rotation_system
-}
+    camera_mouse_keyboard_rotation_system, CameraSettings
+};
 
 
-#[derive(Debug, Resource)]
-pub struct CameraSettings {
-    pub orbit_distance: f32,
-    pub pitch_speed: f32,
-    // Clamp pitch to this range
-    pub pitch_range: Range<f32>,
-    pub roll_speed: f32,
-    pub yaw_speed: f32,
-    pub x_translation_speed: f32,
-    pub y_translation_speed: f32,
-    pub z_translation_speed: f32,
-}
-
-impl Default for CameraSettings {
-    fn default() -> Self {
-        // Limiting pitch stops some unexpected rotation past 90° up or down.
-        let pitch_limit = FRAC_PI_2 - 0.01;
-        Self {
-            // These values are completely arbitrary, chosen because they seem to produce
-            // "sensible" results for this example. Adjust as required.
-            orbit_distance: 1.0,
-            pitch_speed: 0.003,
-            pitch_range: -pitch_limit..pitch_limit,
-            roll_speed: 1.0,
-            yaw_speed: 0.004,
-            x_translation_speed: 0.01, 
-            y_translation_speed: 0.01, 
-            z_translation_speed: 0.01,
-        }
-    }
-}
 
 fn main() {
    App::new()
